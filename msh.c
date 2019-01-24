@@ -20,6 +20,33 @@
 #define MAX_NUM_ARGUMENTS 11     // Mav shell only supports ten arguments + command itself
 
 //#define DEBUG
+/*
+ * Checklist
+ * 1    Done
+ * 2    Done
+ * 3    Done
+ * 4    Done
+ * 5    DOne
+ * 6    
+ * 7
+ * 8
+ * 9
+ * 10
+ * 11
+ * 12
+ * 13
+ * 14
+ * 15
+ * 16
+ * 17
+ * 18
+ * 19
+ * 20
+ * 21
+ * 22
+ * 23
+ * 24
+ * */
 int main(int argc, char * argv[])
 {
     char *  cmd_str = (char *)malloc( MAX_COMMAND_SIZE );
@@ -84,9 +111,9 @@ int main(int argc, char * argv[])
             strcat( curr_working_string, token[0] );
             // if the command is cd we can only run in the parent proccess
             // so why bother trying to execute it
-            if( strcmp( token[0], "cd" ) == 0) 
+            if( token[0] != NULL && strcmp( token[0], "cd" ) == 0) 
                 exit(0);
-            else if( strcmp( token[0], "history" ) == 0 )
+            else if( token[0]!= NULL && strcmp( token[0], "history" ) == 0 )
             {
                 int i;
                 for( i = 0; i < 15; i++ )
@@ -94,6 +121,10 @@ int main(int argc, char * argv[])
                     if( history[i] != NULL )
                         printf("%d: %s", i, history[i]);
                 }
+            }
+            else if( token[0] != NULL && strcmp( token[0], "quit" ) == 0 || strcmp( token[0], "exit" ) == 0 )
+            {
+                exit( 0 );
             }
             while( ( execl(curr_working_string, token[0], token[1], token[2], token[3],
                     token[4], token[5],token[6], token[7], token[8], token[9], token[10],NULL) == -1 )&&
@@ -123,13 +154,19 @@ int main(int argc, char * argv[])
                 printf("Child returned with status %d\n", WTERMSIG( status ) );
             }
 #endif
-            if( strcmp( token[0], "cd" ) == 0)
+            if( token[0] != NULL && strcmp( token[0], "cd" ) == 0)
             {
                 chdir(token[1]);
             }
+            else if( token[0] != NULL && 
+                    ( strcmp( token[0], "quit" ) == 0 || strcmp( token[0], "exit" ) == 0 ) )
+            {
+                exit( 0 );
+            }
+
         }
 
         free( working_root );
     }
-    return 0;
+    exit( 0 );
 }
