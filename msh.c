@@ -20,33 +20,6 @@
 #define MAX_NUM_ARGUMENTS 11     // Mav shell only supports ten arguments + command itself
 
 //#define DEBUG
-/*
- * Checklist
- * 1    Done
- * 2    Done
- * 3    Done
- * 4    Done
- * 5    DOne
- * 6    
- * 7
- * 8
- * 9
- * 10
- * 11
- * 12
- * 13
- * 14
- * 15
- * 16
- * 17
- * 18
- * 19
- * 20
- * 21
- * 22
- * 23
- * 24
- * */
 
 struct command_struct 
 {
@@ -92,7 +65,7 @@ void sig_handler( int sig )
     else if( sig == 20 )
     {
         //SIGTSTP(ctrl-z)
-        kill( pid_history[last_pid], SIGTSTP );
+        //kill( pid_history[last_pid], SIGTSTP );
     }
     else if( sig == 18 )
     {
@@ -160,8 +133,8 @@ int main(int argc, char * argv[])
         int test;
         for( test = 0; test < 15; test++)
         {
-            if( history[test] != NULL)
-                printf("%d: %s", test, history[test]);
+            if( history[test].full_command != NULL)
+                printf("%d: %s", test, history[test].full_command);
         }
 #endif
         pid_t   child_pid = fork();
@@ -175,6 +148,13 @@ int main(int argc, char * argv[])
             // '/usr/bin'
             // '/bin'
             */
+            if( pid_index > 15 )
+            {
+                pid_index = 0;
+            }
+            pid_history[pid_index++] = getpid(); 
+            last_pid++;
+            last_pid %= 15; 
             char *  paths[4] = { "./", "/usr/local/bin/", "/usr/bin/", "/bin/" };
             int     i = 0;
             char    curr_working_string[MAX_COMMAND_SIZE]; 
@@ -195,10 +175,12 @@ int main(int argc, char * argv[])
             }
             else if( token[0] != NULL && strcmp( token[0], "quit" ) == 0 || strcmp( token[0], "exit" ) == 0 )
             {
+                printf("Quiiting in pid: %d\n", getpid());
                 exit( 0 );
             }
             else if( strcmp( token[0], "bg" ) == 0 )
             {
+                printf("Calling SIGTSTP from bg in pid: %d\n", getpid());
                 kill(pid_history[pid_index], SIGTSTP);
 
             }
@@ -208,6 +190,17 @@ int main(int argc, char * argv[])
                 if( command_number <= 14 && command_number >= 0 )
                 {
 
+                }
+            }
+            else if( strcmp( token[0], "listpids") == 0 )
+            {
+                int i;
+                for ( i = 0; i < 15; i++ )
+                {
+                    if( pid_history[i] != 0 )
+                    {
+                        printf("%d: %d\n", i, pid_history[i]); 
+                    }
                 }
             }
             while( ( execl( curr_working_string, token[0], token[1], token[2], token[3],
@@ -234,17 +227,15 @@ int main(int argc, char * argv[])
         }
         else 
         {
-            //update the pid list
+            int status;
+            waitpid( child_pid, &status, 0 );
             if( pid_index > 15 )
             {
                 pid_index = 0;
             }
-            pid_history[pid_index++] = child_pid; 
+            pid_history[pid_index++] = getpid(); 
             last_pid++;
             last_pid %= 15; 
-            
-            int status;
-            waitpid( child_pid, &status, 0 );
 #ifdef DEBUG
             if( WIFSIGNALED( status ) )
             {
@@ -260,18 +251,8 @@ int main(int argc, char * argv[])
             else if( token[0] != NULL && 
                     ( strcmp( token[0], "quit" ) == 0 || strcmp( token[0], "exit" ) == 0 ) )
             {
+                printf("Quiiting from pid: %d\n",getpid());
                 exit( 0 );
-            }
-            else if( strcmp( token[0], "listpids") == 0 )
-            {
-                int i;
-                for( i = 0; i < 15; i++ )
-                {
-                    if( pid_history[i] != 0 )
-                    {
-                        printf("%d: %d\n", i, pid_history[i]);
-                    }
-                }
             }
 
         }
